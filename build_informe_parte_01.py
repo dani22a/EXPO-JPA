@@ -577,7 +577,89 @@ B(table(
     col_widths=[2200, 3400, 1900, 2500],
 ))
 
-B(heading('4.3 ¿Se pueden cambiar entre sí?', 2))
+B(heading('4.3 La diferencia en código: la misma operación, tres enfoques', 2))
+
+B(p(
+    'Para que la distinción se vuelva tangible, mirá la MISMA operación '
+    '—"obtener un cliente por su id"— resuelta de tres formas distintas: con JPA '
+    'puro, con Hibernate nativo y con Spring Data JPA. La operación es idéntica; lo '
+    'que cambia es la API que usamos y el nivel de abstracción al que trabajamos.'
+))
+
+B(p('JPA puro — usando solo la especificación', bold=True))
+B(p(
+    'Este código usa exclusivamente lo que define jakarta.persistence: EntityManager '
+    'es la interfaz ESTÁNDAR. Cualquier implementación (Hibernate, EclipseLink, '
+    'OpenJPA) la cumple. Si mañana cambiás de proveedor, este código no se toca.'
+))
+B(code_block(
+    "// API estandar de JPA — paquete jakarta.persistence\n"
+    "@PersistenceContext\n"
+    "private EntityManager em;\n"
+    "\n"
+    "public Cliente buscar(Long id) {\n"
+    "    return em.find(Cliente.class, id);\n"
+    "}"
+))
+
+B(p('Hibernate nativo — bajando un escalón al proveedor', bold=True))
+B(p(
+    'Hibernate también expone su propia API que NO está en JPA: Session, '
+    'SessionFactory, criterios propios. Es más potente para casos avanzados '
+    '(filtros, statistics, cache de segundo nivel), pero te ata a Hibernate '
+    'específicamente. Migrar a otro proveedor requiere reescribir este código.'
+))
+B(code_block(
+    "// API propia de Hibernate — paquete org.hibernate\n"
+    "@Autowired\n"
+    "private SessionFactory sessionFactory;\n"
+    "\n"
+    "public Cliente buscar(Long id) {\n"
+    "    Session session = sessionFactory.getCurrentSession();\n"
+    "    return session.get(Cliente.class, id);\n"
+    "}"
+))
+
+B(p('Spring Data JPA — declarás una interface y listo', bold=True))
+B(p(
+    'La diferencia más grande: no escribimos implementación. Declaramos UNA '
+    'interface, extendemos JpaRepository, y Spring genera el bean en runtime con '
+    'todas las operaciones CRUD ya disponibles. Por debajo sigue siendo Hibernate; '
+    'arriba, código mínimo.'
+))
+B(code_block(
+    "// 1) Declaramos UNA interface — sin implementacion\n"
+    "public interface ClienteRepository\n"
+    "        extends JpaRepository<Cliente, Long> {\n"
+    "    // findById, save, findAll, deleteById, count... ya vienen de fabrica\n"
+    "}\n"
+    "\n"
+    "// 2) La usamos — Spring inyecta el bean generado en runtime\n"
+    "private final ClienteRepository repo;\n"
+    "\n"
+    "public Cliente buscar(Long id) {\n"
+    "    return repo.findById(id).orElseThrow();\n"
+    "}"
+))
+
+B(callout('Lo que tiene que quedar claro:',
+    'los tres ejemplos hacen EXACTAMENTE lo mismo. El SQL que llega a la base es '
+    'prácticamente idéntico (un SELECT por id). Lo que cambia es CUÁNTO código '
+    'escribimos y a qué capa de la torre nos atamos. Spring Data JPA es la capa más '
+    'alta y la que usaremos en el proyecto demo.'))
+
+B(p('Resumen visual de los tres niveles', bold=True))
+B(table(
+    ['Enfoque', 'Paquete', 'Líneas de código', 'Atado a'],
+    [
+        ['JPA puro', 'jakarta.persistence', '~5', 'Ningún proveedor (portable)'],
+        ['Hibernate nativo', 'org.hibernate', '~6', 'Solo Hibernate'],
+        ['Spring Data JPA', 'org.springframework.data.jpa', '~3 (sin implementar nada)', 'Spring + JPA'],
+    ],
+    col_widths=[2200, 2800, 2200, 1800],
+))
+
+B(heading('4.4 ¿Se pueden cambiar entre sí?', 2))
 B(bullet_runs(
     run('JPA: ', bold=True),
     run(
@@ -600,7 +682,7 @@ B(bullet_runs(
     ),
 ))
 
-B(heading('4.4 Comparación con NestJS (clave didáctica)', 2))
+B(heading('4.5 Comparación con NestJS (clave didáctica)', 2))
 B(p(
     'Esta es una de las grandes diferencias entre los dos ecosistemas y vale la pena '
     'mencionarla porque la audiencia ya conoce Nest:'
@@ -621,7 +703,7 @@ B(p(
     'Hibernate les sirve aunque el equipo migre a EclipseLink en cinco años.'
 ))
 
-B(heading('4.5 Cómo lo presento (guion sugerido, ~2 min)', 2))
+B(heading('4.6 Cómo lo presento (guion sugerido, ~2 min)', 2))
 B(quote_block(
     '"Voy a disolver una confusión típica. La gente dice JPA, Hibernate y Spring Data '
     'JPA como si fueran lo mismo. No lo son. Acuérdense de Java básico: hay '
@@ -630,7 +712,12 @@ B(quote_block(
     'Define las anotaciones, define los contratos, pero no ejecuta nada. Hibernate '
     'es la CLASE — la implementación concreta que hace el trabajo. Spring Data JPA '
     'es una librería adicional que se construye encima y automatiza los patrones más '
-    'comunes, como generarte un repositorio sin escribirlo. Punto importante: en '
+    'comunes, como generarte un repositorio sin escribirlo. Para que se vea concreto '
+    '—y esta es la diapositiva que les voy a mostrar— acá tienen la misma operación '
+    '"buscar un cliente por id" resuelta de tres formas: con JPA puro usando '
+    'EntityManager, con Hibernate nativo usando Session, y con Spring Data JPA '
+    'donde solo declaramos una interface. Las tres hacen lo mismo. Lo que cambia es '
+    'cuánto código escribimos y a qué capa nos atamos. Punto importante: en '
     'Java tenemos esta especificación común, JPA. En Node, ustedes que vienen de '
     'Nest, no la tienen. TypeORM, Prisma y MikroORM cada uno tienen su propia API. '
     'Tener un estándar es valioso: el conocimiento que adquieren con Hibernate les '
