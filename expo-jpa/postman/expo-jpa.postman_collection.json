@@ -1,0 +1,352 @@
+{
+  "info": {
+    "name": "EXPO-JPA — Demo Banco",
+    "description": "Coleccion completa para la exposicion de Spring Data JPA. Incluye CRUD de clientes y cuentas, movimientos, transferencias, saldos agregados y queries con stored procedure / native SQL.\n\nVariable {{baseUrl}} configurada por defecto a http://localhost:8080.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Clientes",
+      "item": [
+        {
+          "name": "Listar clientes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clientes"]
+            }
+          }
+        },
+        {
+          "name": "Obtener cliente por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clientes", "1"]
+            }
+          }
+        },
+        {
+          "name": "Crear cliente",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombres\": \"Lucia\",\n  \"apellidos\": \"Ramirez\",\n  \"dni\": \"70999888\",\n  \"email\": \"lucia@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clientes"]
+            }
+          }
+        },
+        {
+          "name": "Actualizar cliente",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombres\": \"Daniel\",\n  \"apellidos\": \"Solano Vega\",\n  \"dni\": \"70123456\",\n  \"email\": \"daniel.nuevo@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clientes", "1"]
+            }
+          }
+        },
+        {
+          "name": "Eliminar cliente (cascada)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes/3",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clientes", "3"]
+            },
+            "description": "Borra el cliente y, en cascada, sus cuentas y movimientos."
+          }
+        },
+        {
+          "name": "Validacion fallida (DNI invalido)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombres\": \"\",\n  \"apellidos\": \"Test\",\n  \"dni\": \"123\",\n  \"email\": \"no-es-email\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clientes"]
+            },
+            "description": "Demuestra el GlobalExceptionHandler devolviendo 400 con detalle por campo."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Cuentas",
+      "item": [
+        {
+          "name": "Obtener cuenta por ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cuentas/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cuentas", "1"]
+            }
+          }
+        },
+        {
+          "name": "Listar cuentas de un cliente (paginado)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cuentas/cliente/1?page=0&size=10&sort=saldo,desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cuentas", "cliente", "1"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" },
+                { "key": "sort", "value": "saldo,desc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Saldo total del cliente (JPQL agregado)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cuentas/cliente/1/saldo-total",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cuentas", "cliente", "1", "saldo-total"]
+            },
+            "description": "Usa una proyeccion JPQL con SUM y COALESCE."
+          }
+        },
+        {
+          "name": "Top N cuentas sobre el promedio (NATIVE QUERY)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/cuentas/top?limite=3",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cuentas", "top"],
+              "query": [
+                { "key": "limite", "value": "3" }
+              ]
+            },
+            "description": "Demuestra @Query con nativeQuery=true (subquery + LIMIT)."
+          }
+        },
+        {
+          "name": "Crear cuenta",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroCuenta\": \"0001-9999\",\n  \"saldoInicial\": 5000.00,\n  \"clienteId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cuentas",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cuentas"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Movimientos",
+      "item": [
+        {
+          "name": "Registrar DEPOSITO",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 500.00,\n  \"tipo\": \"DEPOSITO\",\n  \"descripcion\": \"Deposito en ventanilla\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cuentas/1/movimientos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cuentas", "1", "movimientos"]
+            }
+          }
+        },
+        {
+          "name": "Registrar RETIRO",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 200.00,\n  \"tipo\": \"RETIRO\",\n  \"descripcion\": \"Retiro por cajero\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cuentas/1/movimientos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cuentas", "1", "movimientos"]
+            }
+          }
+        },
+        {
+          "name": "Registrar PAGO_SERVICIO",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 80.00,\n  \"tipo\": \"PAGO_SERVICIO\",\n  \"descripcion\": \"Pago de internet\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cuentas/2/movimientos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cuentas", "2", "movimientos"]
+            }
+          }
+        },
+        {
+          "name": "RETIRO con saldo insuficiente (422)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monto\": 999999.00,\n  \"tipo\": \"RETIRO\",\n  \"descripcion\": \"Intento que debe fallar\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cuentas/3/movimientos",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cuentas", "3", "movimientos"]
+            },
+            "description": "Demuestra SaldoInsuficienteException + GlobalExceptionHandler -> 422."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Transferencias (atomicas)",
+      "item": [
+        {
+          "name": "Transferir entre cuentas",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"origenId\": 2,\n  \"destinoId\": 3,\n  \"monto\": 300.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cuentas/transferir",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cuentas", "transferir"]
+            },
+            "description": "Demuestra @Transactional: si la segunda operacion falla, la primera se revierte."
+          }
+        },
+        {
+          "name": "Transferencia invalida (misma cuenta)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"origenId\": 1,\n  \"destinoId\": 1,\n  \"monto\": 100.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cuentas/transferir",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cuentas", "transferir"]
+            },
+            "description": "Devuelve 500 con mensaje de IllegalArgumentException."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Casos de error (Q&A)",
+      "item": [
+        {
+          "name": "Recurso no encontrado (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/clientes/9999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "clientes", "9999"]
+            }
+          }
+        },
+        {
+          "name": "Cuenta duplicada (numero ya existe)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroCuenta\": \"0001-0001\",\n  \"saldoInicial\": 100.00,\n  \"clienteId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/cuentas",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "cuentas"]
+            },
+            "description": "Numero 0001-0001 ya existe en data.sql -> error de duplicado."
+          }
+        }
+      ]
+    }
+  ]
+}
